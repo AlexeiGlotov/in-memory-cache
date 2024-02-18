@@ -1,27 +1,42 @@
 package in_memory_cache_
 
-type stvalue struct {
-	value string
+import (
+	"sync"
+	"time"
+)
+
+type ElemValue struct {
+	value      string
+	ttl        time.Duration
+	timeCreate time.Time
 }
 
 type MyCache struct {
-	cache map[string]stvalue
+	cache map[string]ElemValue
+	mu    sync.Mutex
 }
 
 func NewCache() *MyCache {
 	return &MyCache{
-		cache: make(map[string]stvalue),
+		cache: make(map[string]ElemValue),
 	}
 }
 
-func (m MyCache) Set(key string, value stvalue) {
-	m.cache[key] = value
+func (m MyCache) Set(key string, value string, ttl time.Duration) {
+	m.cache[key] = ElemValue{value: value, ttl: ttl, timeCreate: time.Now()}
 }
 
-func (m MyCache) Get(key string) (res stvalue, value string) {
+func (m MyCache) Get(key string) (res ElemValue, value string) {
+
 	val, ok := m.cache[key]
 	if ok {
-		return val, val.value
+		if time.Since(m.cache[key].timeCreate) > m.cache[key].ttl {
+			m.Delete(key)
+			return
+		} else {
+			return val, val.value
+		}
+
 	}
 
 	return
@@ -34,6 +49,6 @@ func (m MyCache) Delete(key string) {
 	}
 }
 
-func (m MyCache) Info() (res map[string]stvalue) {
+func (m MyCache) Info() (res map[string]ElemValue) {
 	return m.cache
 }
