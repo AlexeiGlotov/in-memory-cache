@@ -6,7 +6,7 @@ import (
 )
 
 type ElemValue struct {
-	value      string
+	value      interface{}
 	ttl        time.Duration
 	timeCreate time.Time
 }
@@ -22,11 +22,11 @@ func NewCache() *MyCache {
 	}
 }
 
-func (m MyCache) Set(key string, value string, ttl time.Duration) {
+func (m MyCache) Set(key string, value interface{}, ttl time.Duration) {
 	m.cache[key] = ElemValue{value: value, ttl: ttl, timeCreate: time.Now()}
 }
 
-func (m MyCache) Get(key string) (res ElemValue, value string) {
+func (m MyCache) Get(key string) (res ElemValue, value interface{}) {
 
 	val, ok := m.cache[key]
 	if ok {
